@@ -58,6 +58,9 @@ gem 'actionpack-action_caching'
 gem 'activerecord-session_store'
 gem 'activerecord-deprecated_finders', require: 'active_record/deprecated_finders'
 
+# gem for error reporting
+gem 'airbrake'
+
 group :production do
   gem 'dalli', '~> 2.7.0'
 end
