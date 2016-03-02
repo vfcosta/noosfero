@@ -43,3 +43,6 @@
 # [submodule "plugins/inclusao_digital"]
 # 	path = plugins/inclusao_digital
 # 	url = http://softwarepublico.gov.br/gitlab/noosfero-plugins/inclusao_digital.git
+[submodule "plugins/serpro_integration"]
+	path = plugins/serpro_integration
+	url = http://softwarepublico.gov.br/gitlab/noosfero-plugins/serpro_integration.git
