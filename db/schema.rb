@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151221105330) do
+ActiveRecord::Schema.define(version: 20160224132937) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -88,9 +88,9 @@ ActiveRecord::Schema.define(version: 20151221105330) do
     t.integer "profile_id"
   end
 
-  create_table "article_followers", force: :cascade do |t|
-    t.integer  "person_id",  null: false
-    t.integer  "article_id", null: false
+  create_table "article_followers", id: false, force: :cascade do |t|
+    t.integer  "person_id"
+    t.integer  "article_id"
     t.datetime "since"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -699,6 +699,7 @@ ActiveRecord::Schema.define(version: 20151221105330) do
     t.string   "locale"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "data"
   end
 
   create_table "mark_comment_as_read_plugin", force: :cascade do |t|
@@ -1071,12 +1072,14 @@ ActiveRecord::Schema.define(version: 20151221105330) do
   end
 
   create_table "role_assignments", force: :cascade do |t|
-    t.integer "accessor_id",   null: false
-    t.string  "accessor_type"
-    t.integer "resource_id"
-    t.string  "resource_type"
-    t.integer "role_id",       null: false
-    t.boolean "is_global"
+    t.integer  "accessor_id",   null: false
+    t.string   "accessor_type"
+    t.integer  "resource_id"
+    t.string   "resource_type"
+    t.integer  "role_id",       null: false
+    t.boolean  "is_global"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "roles", force: :cascade do |t|

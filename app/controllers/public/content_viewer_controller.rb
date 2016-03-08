@@ -68,11 +68,7 @@ class ContentViewerController < ApplicationController
     process_comments(params)
 
     if request.xhr? and params[:comment_order]
-      if @comment_order == 'newest'
-        @comments = @comments.reverse
-      end
-
-      return render :partial => 'comment/comment', :collection => @comments
+      return render :partial => 'comment/comments_with_pagination'
     end
 
     if params[:slideshow]
@@ -209,8 +205,6 @@ class ContentViewerController < ApplicationController
 
   def rendered_file_download(view = nil)
     if @page.download? view
-      headers['Content-Type'] = @page.mime_type
-      headers.merge! @page.download_headers
       data = @page.data
 
       # TODO test the condition
@@ -218,7 +212,12 @@ class ContentViewerController < ApplicationController
         raise "No data for file"
       end
 
-      render :text => data, :layout => false
+      if @page.published && @page.uploaded_file?
+        redirect_to @page.public_filename
+      else
+        send_data data, @page.download_headers
+      end
+
       return true
     end
 
@@ -244,8 +243,12 @@ class ContentViewerController < ApplicationController
 
   def get_posts(year = nil, month = nil)
     if year && month
-      filter_date = DateTime.parse("#{year}-#{month}-01")
-      return @page.posts.by_range(filter_date..filter_date.at_end_of_month)
+      begin
+        filter_date = DateTime.parse("#{year}-#{month}-01")
+        return @page.posts.by_range(filter_date..filter_date.at_end_of_month)
+      rescue ArgumentError
+        return @page.posts
+      end
     else
       return @page.posts
     end
@@ -276,8 +279,12 @@ class ContentViewerController < ApplicationController
     @comments = @page.comments.without_spam
     @comments = @plugins.filter(:unavailable_comments, @comments)
     @comments_count = @comments.count
-    @comments = @comments.without_reply.paginate(:per_page => per_page, :page => params[:comment_page] )
     @comment_order = params[:comment_order].nil? ? 'oldest' : params[:comment_order]
+    @comments = @comments.without_reply
+    if @comment_order == 'newest'
+      @comments = @comments.reverse
+    end
+    @comments = @comments.paginate(:per_page => per_page, :page => params[:comment_page] )
   end
 
   private

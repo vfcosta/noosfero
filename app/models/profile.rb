@@ -78,6 +78,9 @@ class Profile < ActiveRecord::Base
     def self.organization_member_roles(env_id)
       all_roles(env_id).select{ |r| r.key.match(/^profile_/) unless r.key.blank? || !r.profile_id.nil?}
     end
+    def self.organization_custom_roles(env_id, profile_id)
+      all_roles(env_id).where('profile_id = ?', profile_id)
+    end
     def self.all_roles(env_id)
       Role.where(environment_id: env_id)
     end
@@ -119,7 +122,7 @@ class Profile < ActiveRecord::Base
   include Noosfero::Plugin::HotSpot
 
   scope :memberships_of, -> person {
-    select('DISTINCT profiles.*').
+    distinct.select('profiles.*').
     joins(:role_assignments).
     where('role_assignments.accessor_type = ? AND role_assignments.accessor_id = ?', person.class.base_class.name, person.id)
   }
@@ -185,15 +188,23 @@ class Profile < ActiveRecord::Base
 
   include TimeScopes
 
-  def members
+  def members(by_field = '')
     scopes = plugins.dispatch_scopes(:organization_members, self)
-    scopes << Person.members_of(self)
+    scopes << Person.members_of(self,by_field)
     return scopes.first if scopes.size == 1
     ScopeTool.union *scopes
   end
 
-  def members_by_name
-    members.order('profiles.name')
+  def members_by(field,value = nil)
+    if value and !value.blank?
+      members_like(field,value).order('profiles.name')
+    else
+      members.order('profiles.name')
+    end
+  end
+
+  def members_like(field,value)
+    members(field).where("LOWER(#{field}) LIKE ?", "%#{value.downcase}%") if value
   end
 
   class << self
@@ -781,13 +792,13 @@ private :generate_url, :url_options
   end
 
   # Adds a person as member of this Profile.
-  def add_member(person)
+  def add_member(person, attributes={})
     if self.has_members?
       if self.closed? && members.count > 0
         AddMember.create!(:person => person, :organization => self) unless self.already_request_membership?(person)
       else
-        self.affiliate(person, Profile::Roles.admin(environment.id)) if members.count == 0
-        self.affiliate(person, Profile::Roles.member(environment.id))
+        self.affiliate(person, Profile::Roles.admin(environment.id), attributes) if members.count == 0
+        self.affiliate(person, Profile::Roles.member(environment.id), attributes)
       end
       person.tasks.pending.of("InviteMember").select { |t| t.data[:community_id] == self.id }.each { |invite| invite.cancel }
       remove_from_suggestion_list person
@@ -1162,6 +1173,10 @@ private :generate_url, :url_options
     else
       (user == self) || (user.is_admin?(self.environment)) || user.is_admin?(self) || user.memberships.include?(self)
     end
+  end
+
+  def can_view_field? current_person, field
+    display_private_info_to?(current_person) || (public_fields.include?(field) && public?)
   end
 
   validates_inclusion_of :redirection_after_login, :in => Environment.login_redirection_options.keys, :allow_nil => true

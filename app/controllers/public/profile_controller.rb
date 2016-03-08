@@ -155,6 +155,18 @@ class ProfileController < PublicController
     end
   end
 
+  def follow_article
+    article = profile.environment.articles.find params[:article_id]
+    article.person_followers << user
+    redirect_to article.url
+  end
+
+  def unfollow_article
+    article = profile.environment.articles.find params[:article_id]
+    article.person_followers.delete(user)
+    redirect_to article.url
+  end
+
   def unblock
     if current_user.person.is_admin?(profile.environment)
       profile.unblock
@@ -362,6 +374,7 @@ class ProfileController < PublicController
   def send_mail
     @mailing = profile.mailings.build(params[:mailing])
     @email_templates = profile.email_templates.find_all_by_template_type(:organization_members)
+    @mailing.data = session[:members_filtered] ? {:members_filtered => session[:members_filtered]} : {}
     if request.post?
       @mailing.locale = locale
       @mailing.person = user

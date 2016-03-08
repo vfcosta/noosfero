@@ -198,7 +198,7 @@ class AccountController < ApplicationController
     if request.post?
       begin
         unless verify_recaptcha
-          @change_password.errors.add(:base, _('Please type the words correctly'))
+          @change_password.errors.add(:base, _('Please type the captcha text correctly'))
           return false
         end
 

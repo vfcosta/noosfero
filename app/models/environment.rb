@@ -56,6 +56,7 @@ class Environment < ActiveRecord::Base
     'manage_environment_trusted_sites' => N_('Manage environment trusted sites'),
     'edit_appearance'      => N_('Edit appearance'),
     'manage_email_templates' => N_('Manage Email Templates'),
+    'edit_raw_html_block'      => N_('Edit Raw HTML block'),
   }
 
   module Roles
