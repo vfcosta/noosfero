@@ -87,13 +87,15 @@ class EventTest < ActiveSupport::TestCase
   end
 
   should 'provide range of dates for event with both dates filled' do
-    e = build(Event, :start_date => DateTime.new(2008, 1, 1), :end_date => DateTime.new(2008, 1, 5))
+    date = Time.zone.local(2008, 1, 1, 0, 0, 0)
+    e = build(Event, :start_date => Time.zone.local(2008, 1, 1, 0, 0, 0), :end_date => Time.zone.local(2008, 1, 5, 0, 0, 0))
     assert_equal (DateTime.new(2008,1,1)..DateTime.new(2008,1,5)), e.date_range
   end
 
   should 'provide range of dates for event with only start date' do
-    e = build(Event, :start_date => DateTime.new(2008, 1, 1))
-    assert_equal (DateTime.new(2008,1,1)..DateTime.new(2008,1,1)), e.date_range
+    date = Time.zone.local(2008, 1, 1, 0, 0, 0)
+    e = build(Event, :start_date => date)
+    assert_equal (date.to_date..date.to_date), e.date_range
   end
 
   should 'provide nice display format' do
