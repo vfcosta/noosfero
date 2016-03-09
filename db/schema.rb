@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160224132937) do
+ActiveRecord::Schema.define(version: 20160309122141) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -56,39 +56,7 @@ ActiveRecord::Schema.define(version: 20160224132937) do
   add_index "action_tracker_notifications", ["profile_id", "action_tracker_id"], name: "index_action_tracker_notif_on_prof_id_act_tracker_id", unique: true, using: :btree
   add_index "action_tracker_notifications", ["profile_id"], name: "index_action_tracker_notifications_on_profile_id", using: :btree
 
-  create_table "analytics_plugin_page_views", force: :cascade do |t|
-    t.string   "type"
-    t.integer  "visit_id"
-    t.integer  "track_id"
-    t.integer  "referer_page_view_id"
-    t.string   "request_id"
-    t.integer  "user_id"
-    t.integer  "session_id"
-    t.integer  "profile_id"
-    t.text     "url"
-    t.text     "referer_url"
-    t.text     "user_agent"
-    t.string   "remote_ip"
-    t.datetime "request_started_at"
-    t.datetime "request_finished_at"
-    t.datetime "page_loaded_at"
-    t.integer  "time_on_page",         default: 0
-    t.text     "data",                 default: "--- {}\n"
-  end
-
-  add_index "analytics_plugin_page_views", ["profile_id"], name: "index_analytics_plugin_page_views_on_profile_id", using: :btree
-  add_index "analytics_plugin_page_views", ["referer_page_view_id"], name: "index_analytics_plugin_page_views_on_referer_page_view_id", using: :btree
-  add_index "analytics_plugin_page_views", ["request_id"], name: "index_analytics_plugin_page_views_on_request_id", using: :btree
-  add_index "analytics_plugin_page_views", ["session_id"], name: "index_analytics_plugin_page_views_on_session_id", using: :btree
-  add_index "analytics_plugin_page_views", ["url"], name: "index_analytics_plugin_page_views_on_url", using: :btree
-  add_index "analytics_plugin_page_views", ["user_id", "session_id", "profile_id", "url"], name: "analytics_plugin_referer_find", using: :btree
-  add_index "analytics_plugin_page_views", ["user_id"], name: "index_analytics_plugin_page_views_on_user_id", using: :btree
-
-  create_table "analytics_plugin_visits", force: :cascade do |t|
-    t.integer "profile_id"
-  end
-
-  create_table "article_followers", id: false, force: :cascade do |t|
+  create_table "article_followers", force: :cascade do |t|
     t.integer  "person_id"
     t.integer  "article_id"
     t.datetime "since"
