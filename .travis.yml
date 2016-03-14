@@ -23,6 +23,9 @@ addons:
       - libreadline-dev
       - libsqlite3-dev
       - libxslt1-dev
+  artifacts:
+    paths:
+      - $(ls tmp/artifact* | tr "\n" ":")
 
 git:
   submodules: false
