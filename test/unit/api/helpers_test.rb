@@ -205,7 +205,6 @@ class APIHelpersTest < ActiveSupport::TestCase
     filter_disabled_plugins_endpoints
   end
 
-<<<<<<< HEAD
   should 'find all published articles on environment' do
     #user = create_user('someuser')
     #p = fast_create(Profile)
@@ -219,8 +218,6 @@ class APIHelpersTest < ActiveSupport::TestCase
     #assert_equals [article1, article2], present_articles
   end
 
-=======
->>>>>>> master
   should 'not touch in options when no fields parameter is passed' do
     model = mock
     expects(:present).with(model, {})
