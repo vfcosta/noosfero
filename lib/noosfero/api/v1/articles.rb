@@ -221,7 +221,7 @@ module Noosfero
             end
 
             Article.hit(articles)
-            present_articles_paginated(articles)
+            present_articles(articles)
           end
 
           desc 'Return one child of a article identified by id' do

@@ -210,33 +210,6 @@ class ArticlesTest < ActiveSupport::TestCase
     end
   end
 
-  should 'not perform a vote twice in same article' do
-    article = fast_create(Article, :profile_id => @person.id, :name => "Some thing")
-    @params[:value] = 1
-    ## Perform a vote twice in API should compute only one vote
-    post "/api/v1/articles/#{article.id}/vote?#{params.to_query}"
-    post "/api/v1/articles/#{article.id}/vote?#{params.to_query}"
-
-    total = article.votes_total
-
-    assert_equal 1, total
-  end
-
-  should 'not perform a vote in favor and against a proposal' do
-    article = fast_create(Article, :profile_id => @person.id, :name => "Some thing")
-    @params[:value] = 1
-    ## Perform a vote in favor a proposal
-    post "/api/v1/articles/#{article.id}/vote?#{params.to_query}"
-    json = JSON.parse(last_response.body)
-    assert_equal 201, last_response.status
-    ## Perform a vote against a proposal
-    @params[:value] = -1
-    post "/api/v1/articles/#{article.id}/vote?#{params.to_query}"
-    json = JSON.parse(last_response.body)
-    ## The api should not allow to save this vote
-    assert_equal 400, last_response.status
-  end
-
   should "update body of article created by me" do
     new_value = "Another body"
     params[:article] = {:body => new_value}
@@ -711,15 +684,6 @@ class ArticlesTest < ActiveSupport::TestCase
     json = JSON.parse(last_response.body)
     assert_not_includes json["articles"].map { |a| a["id"] }, article1.id
     assert_includes json["articles"].map { |a| a["id"] }, article2.id
-  end
-
-  should 'list articles followed by me' do
-    article1 = fast_create(Article, :profile_id => user.person.id, :name => "Some thing")
-    article2 = fast_create(Article, :profile_id => user.person.id, :name => "Some other thing")
-    article1.person_followers << @person
-    get "/api/v1/articles/followed_by_me?#{params.to_query}"
-    json = JSON.parse(last_response.body)
-    assert_equal [article1.id], json['articles'].map { |a| a['id'] }
   end
 
   ARTICLE_ATTRIBUTES = %w(followers_count votes_count comments_count)
