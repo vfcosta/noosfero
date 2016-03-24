@@ -21,14 +21,14 @@ PATH
     access_control (0.0.0)
 
 PATH
-  remote: vendor/plugins/action_tracker
-  specs:
-    action_tracker (0.0.1)
-
-PATH
   remote: vendor/plugins/action_tracker_has_comments
   specs:
     action_tracker_has_comments (0.0.0)
+
+PATH
+  remote: vendor/plugins/action_tracker
+  specs:
+    action_tracker (0.0.1)
 
 PATH
   remote: vendor/plugins/acts_as_list
@@ -425,7 +425,7 @@ DEPENDENCIES
   acts_as_tree (= 0.0.0)!
   acts_as_versioned (> 0.0.0)!
   airbrake (~> 4)
-  api-pagination (~> 4.1.1)
+  api-pagination (>= 4.1.1)
   capybara (~> 2.2)
   contacts (> 0.0.0)!
   cucumber
@@ -491,3 +491,6 @@ DEPENDENCIES
   whenever
   will_paginate (~> 3.0.7)
   xss_terminate (= 0.0.0)!
+
+BUNDLED WITH
+   1.11.2

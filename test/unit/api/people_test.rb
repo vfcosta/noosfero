@@ -15,6 +15,19 @@ class PeopleTest < ActiveSupport::TestCase
     assert_equivalent [person1.id, person2.id, person.id], json['people'].map {|c| c['id']}
   end
 
+  should 'list all members of a community' do
+    person1 = fast_create(Person)
+    person2 = fast_create(Person)
+    community = fast_create(Community)
+    community.add_member(person1)
+    community.add_member(person2)
+
+    get "/api/v1/profiles/#{community.id}/members?#{params.to_query}"
+    json = JSON.parse(last_response.body)
+    assert_equal 2, json["people"].count
+    assert_equivalent [person1.id,person2.id], json["people"].map{|p| p["id"]}
+  end
+
   should 'not list invisible people' do
     invisible_person = fast_create(Person, :visible => false)
 
@@ -55,13 +68,12 @@ class PeopleTest < ActiveSupport::TestCase
   end
 
   should 'people endpoint filter by fields parameter with hierarchy' do
-    fields = {only: [:name, {user: [:login]}]}.to_json
+    fields = URI.encode({only: [:name, {user: [:login]}]}.to_json)
     get "/api/v1/people?#{params.to_query}&fields=#{fields}"
     json = JSON.parse(last_response.body)
     expected = {'people' => [{'name' => person.name, 'user' => {'login' => 'testapi'}}]}
     assert_equal expected, json
   end
-
 
   should 'get logged person' do
     get "/api/v1/people/me?#{params.to_query}"
@@ -228,7 +240,7 @@ class PeopleTest < ActiveSupport::TestCase
     assert_equal "www.blog.org", json['person']['additional_data']['Custom Blog']
   end
 
-  PERSON_ATTRIBUTES = %w(vote_count comments_count following_articles_count articles_count)
+  PERSON_ATTRIBUTES = %w(vote_count comments_count articles_count following_articles_count)
 
   PERSON_ATTRIBUTES.map do |attribute|
 
@@ -243,7 +255,6 @@ class PeopleTest < ActiveSupport::TestCase
       json = JSON.parse(last_response.body)
       assert_not_nil json['person'][attribute]
     end
-
   end
 
 end

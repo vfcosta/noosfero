@@ -5,7 +5,7 @@ module Noosfero
 
         resource :search do
           resource :article do
-            paginate per_page: 20, max_per_page: 200
+            paginate max_per_page: 200
             get do
               # Security checks
               sanitize_params_hash(params)
@@ -24,17 +24,11 @@ module Noosfero
 
               options = {:filter => order, :template_id => params[:template_id]}
 
-              paginate_options = params.select{|k,v| [:page, :per_page].include?(k.to_sym)}.symbolize_keys
-              paginate_options.each_pair{|k,v| v=v.to_i}
-              paginate_options[:page]=1 if !paginate_options.keys.include?(:page)
-
-              search_result = find_by_contents(asset, context, scope, query, paginate_options, options)
+              search_result = find_by_contents(asset, context, scope, query, {:page => 1}, options)
 
               articles = search_result[:results]
 
-              result = present_articles_paginated(articles)
-
-              result
+              present_articles(articles)
             end
           end
         end

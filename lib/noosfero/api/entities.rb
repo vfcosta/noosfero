@@ -132,7 +132,6 @@ module Noosfero
         expose :articles_count do |person, options|
           person.articles.count
         end
-
       end
 
       class Enterprise < Profile
@@ -246,7 +245,6 @@ module Noosfero
           type_map.first.represent(activity.target) unless type_map.nil?
         end
       end
-
     end
   end
 end

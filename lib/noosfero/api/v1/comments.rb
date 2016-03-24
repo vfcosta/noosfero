@@ -32,8 +32,7 @@ module Noosfero
             article = find_article(environment.articles, params[:id])
             options = params.select { |key,v| !['id','private_token'].include?(key) }.merge(:author => current_person, :source => article)
             begin
-              comment = Comment.create(options)
-              comment.save!
+              comment = Comment.create!(options)
             rescue ActiveRecord::RecordInvalid => e
               render_api_error!(e.message, 400)
             end

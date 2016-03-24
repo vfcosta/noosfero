@@ -81,15 +81,11 @@ class Task < ActiveRecord::Base
   end
 
   def target_profile_accepts_notification?(task)
-    if target_is_profile?(task)
-      return task.target.administrator_mail_notification
+    if task.target.kind_of? Organization
+      return task.target.profile_admin_mail_notification
     else
       true
     end
-  end
-
-  def target_is_profile?(task)
-    task.target.kind_of? Profile
   end
 
   # this method finished the task. It calls #perform, which must be overriden

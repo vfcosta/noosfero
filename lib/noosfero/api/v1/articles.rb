@@ -9,8 +9,7 @@ module Noosfero
 
         resource :articles do
 
-          paginate per_page: MAX_PER_PAGE, max_per_page: MAX_PER_PAGE
-
+          paginate max_per_page: MAX_PER_PAGE
           # Collect articles
           #
           # Parameters:
@@ -132,8 +131,7 @@ module Noosfero
             named 'ArticleFollowers'
           end
           get 'voted_by_me' do
-            #FIXME refactor this method
-            present_articles_paginated(current_person.votes.where(:voteable_type => 'Article').collect(&:voteable))
+            present_articles(current_person.votes.where(:voteable_type => 'Article').collect(&:voteable))
           end
 
           desc 'Perform a vote on a article by id' do
@@ -174,6 +172,11 @@ module Noosfero
             article = find_article(environment.articles, params[:id])
             total = article.person_followers.count
             {:total_followers => total}
+          end
+
+          desc "Return the articles followed by me"
+          get 'followed_by_me' do
+            present_articles_for_asset(current_person, 'following_articles')
           end
 
           desc "Add a follower for the article" do

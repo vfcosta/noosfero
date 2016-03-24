@@ -5,7 +5,7 @@ require_relative '../../find_by_contents'
     module API
       module APIHelpers
       PRIVATE_TOKEN_PARAM = :private_token
-      DEFAULT_ALLOWED_PARAMETERS = [:parent_id, :from, :until, :content_type, :author_id, :archived, :identifier]
+      DEFAULT_ALLOWED_PARAMETERS = [:parent_id, :from, :until, :content_type, :author_id, :identifier, :archived]
 
       include SanitizeParams
       include Noosfero::Plugin::HotSpot
@@ -116,6 +116,7 @@ require_relative '../../find_by_contents'
         end
       end
 
+      ARTICLE_TYPES = ['Article'] + Article.descendants.map{|a| a.to_s}
       TASK_TYPES = ['Task'] + Task.descendants.map{|a| a.to_s}
 
       def find_article(articles, id)
@@ -127,8 +128,7 @@ require_relative '../../find_by_contents'
         return forbidden! unless current_person.can_post_content?(asset)
 
         klass_type= params[:content_type].nil? ? TinyMceArticle.name : params[:content_type]
-        article_types = ['Article'] + Article.descendants.map{|a| a.to_s}
-        return forbidden! unless article_types.include?(klass_type)
+        return forbidden! unless ARTICLE_TYPES.include?(klass_type)
 
         article = klass_type.constantize.new(params[:article])
         article.last_changed_by = current_person
@@ -152,12 +152,7 @@ require_relative '../../find_by_contents'
       end
 
       def present_articles(articles)
-        present_partial articles, :with => Entities::Article
-      end
-
-      def present_articles_paginated(articles, per_page=nil)
-        articles = paginate(articles)
-        present_partial articles, :with => Entities::Article
+        present_partial paginate(articles), :with => Entities::Article
       end
 
       def find_articles(asset, method = 'articles')
@@ -239,15 +234,6 @@ require_relative '../../find_by_contents'
         return order
       end
 
-      def make_page_number_with_parameters(params)
-        params[:page] || 1
-      end
-
-      def make_per_page_with_parameters(params)
-        params[:per_page] ||= limit
-        params[:per_page].to_i
-      end
-
       def make_timestamp_with_parameters_and_method(params, method)
         timestamp = nil
         if params[:timestamp]
@@ -281,17 +267,17 @@ require_relative '../../find_by_contents'
       def select_filtered_collection_of(object, method, params)
         conditions = make_conditions_with_parameter(params)
         order = make_order_with_parameters(object,method,params)
-        page_number = make_page_number_with_parameters(params)
-        per_page = make_per_page_with_parameters(params)
         timestamp = make_timestamp_with_parameters_and_method(params, method)
 
         objects = object.send(method)
         objects = by_reference(objects, params)
         objects = by_categories(objects, params)
 
-        objects = objects.where(conditions).where(timestamp).page(page_number).per_page(per_page).reorder(order)
+        objects = objects.where(conditions).where(timestamp).reorder(order)
 
-        objects
+        params[:page] ||= 1
+        params[:per_page] ||= limit
+        paginate(objects)
       end
 
       def authenticate!

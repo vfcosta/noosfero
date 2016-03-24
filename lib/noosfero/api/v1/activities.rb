@@ -17,7 +17,7 @@ module Noosfero
           get ':id/network_activities' do
             #TODO
           end
-          
+
         end
       end
     end
