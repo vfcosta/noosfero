@@ -13,6 +13,7 @@ class Article < ActiveRecord::Base
                   :archived
 
   acts_as_having_image
+  include Noosfero::Plugin::HotSpot
 
   SEARCHABLE_FIELDS = {
     :name => {:label => _('Name'), :weight => 10},
@@ -29,17 +30,13 @@ class Article < ActiveRecord::Base
 
   def initialize(*params)
     super
-
-    if !params.blank?
-      if params.first.has_key?(:profile) && !params.first[:profile].blank?
-        profile = params.first[:profile]
-        self.published = false unless profile.public_profile
+    if params.present? && params.first.present?
+      if params.first.symbolize_keys.has_key?(:published)
+        self.published = params.first.symbolize_keys[:published]
+      elsif params.first[:profile].present? && !params.first[:profile].public_profile
+        self.published = false
       end
-
-      self.published = params.first["published"] if params.first.has_key?("published")
-      self.published = params.first[:published] if params.first.has_key?(:published)
     end
-
   end
 
   def self.default_search_display
@@ -78,15 +75,11 @@ class Article < ActiveRecord::Base
   belongs_to :last_changed_by, :class_name => 'Person', :foreign_key => 'last_changed_by_id'
   belongs_to :created_by, :class_name => 'Person', :foreign_key => 'created_by_id'
 
-  #Article followers relation
-  has_many :article_followers, :dependent => :destroy
-  has_many :person_followers, :class_name => 'Person', :through => :article_followers, :source => :person
-
-  has_many :comments, :class_name => 'Comment', :foreign_key => 'source_id', :dependent => :destroy, :order => 'created_at asc'
+  has_many :comments, -> { order 'created_at asc' }, class_name: 'Comment', as: 'source', dependent: :destroy
 
   has_many :article_followers, :dependent => :destroy
   has_many :person_followers, :class_name => 'Person', :through => :article_followers, :source => :person
-  has_many :person_followers_emails, :class_name => 'User', :through => :person_followers, :source => :user, :select => :email
+  has_many :person_followers_emails, -> { select :email }, class_name: 'User', through: :person_followers, source: :user
 
   has_many :article_categorizations, -> { where 'articles_categories.virtual = ?', false }
   has_many :categories, :through => :article_categorizations
@@ -289,7 +282,7 @@ class Article < ActiveRecord::Base
   # retrives the most commented articles, sorted by the comment count (largest
   # first)
   def self.most_commented(limit)
-    paginate(:order => 'comments_count DESC', :page => 1, :per_page => limit)
+    order('comments_count DESC').paginate(page: 1, per_page: limit)
   end
 
   scope :more_popular, -> { order 'hits DESC' }
@@ -298,7 +291,7 @@ class Article < ActiveRecord::Base
   }
 
   def self.recent(limit = nil, extra_conditions = {}, pagination = true)
-    result = scoped({:conditions => extra_conditions}).
+    result = where(extra_conditions).
       is_public.
       relevant_as_recent.
       limit(limit).
@@ -480,7 +473,7 @@ class Article < ActiveRecord::Base
 
   def rotate_translations
     unless self.translations.empty?
-      rotate = self.translations.all
+      rotate = self.translations.to_a
       root = rotate.shift
       root.update_attribute(:translation_of_id, nil)
       root.translations = rotate
@@ -774,7 +767,7 @@ class Article < ActiveRecord::Base
 
   def version_license(version_number = nil)
     return license if version_number.nil?
-    profile.environment.licenses.find_by_id(get_version(version_number).license_id)
+    profile.environment.licenses.find_by(id: get_version(version_number).license_id)
   end
 
   alias :active_record_cache_key :cache_key
@@ -863,6 +856,7 @@ class Article < ActiveRecord::Base
     true
   end
 
+  # FIXME see if it's needed
   def view_page
     "content_viewer/view_page"
   end

@@ -31,7 +31,7 @@ class UserMailer < ApplicationMailer
       from: "#{user.environment.name} <#{user.environment.contact_email}>",
       to: user.email,
       subject: _("[%s] Activate your account") % [user.environment.name],
-      template_params: {:environment => user.environment, :activation_code => @activation_code, :redirection => @redirection, :join => @join},
+      template_params: {:environment => user.environment, :activation_code => @activation_code, :redirection => @redirection, :join => @join, :person => user.person, :url => @url},
       email_template: user.environment.email_templates.find_by_template_type(:user_activation),
     )
   end

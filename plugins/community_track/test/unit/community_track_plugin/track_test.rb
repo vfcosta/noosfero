@@ -32,7 +32,7 @@ class TrackTest < ActiveSupport::TestCase
     comment = create(Comment, :source => article, :author_id => owner.id)
     @step2 = CommunityTrackPlugin::Step.create!(:parent => @track, :start_date => DateTime.now, :end_date => DateTime.now, :name => 'step2', :profile => @profile)
     @step2.tool_type = 'Forum'
-    forum = fast_create(Forum, :parent_id => @step2.id)
+    forum = fast_create(Forum, :parent_id => @step2.id, :profile_id => owner.id)
     article_forum = create(Article, :name => 'article_forum', :parent_id => forum.id, :profile_id => owner.id)
     forum.children << article_forum
     forum_comment = create(Comment, :source => article_forum, :author_id => owner.id)

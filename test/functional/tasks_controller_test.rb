@@ -239,7 +239,7 @@ class TasksControllerTest < ActionController::TestCase
     t = ApproveArticle.create!(:name => 'test name', :article => article, :target => c, :requestor => profile)
 
     post :close, :tasks => {t.id => {:decision => 'finish', :task => {:name => 'new_name'}}}
-    assert_equal article, c.articles.find_by_name('new_name').reference_article
+    assert_equal article, c.articles.find_by(name: 'new_name').reference_article
   end
 
   should 'create published article in folder after finish approve article task' do
@@ -252,7 +252,7 @@ class TasksControllerTest < ActionController::TestCase
     t = ApproveArticle.create!(:name => 'test name', :article => article, :target => c, :requestor => profile)
 
     post :close, :tasks => {t.id => {:decision => 'finish', :task => {:name => 'new_name', :article_parent_id => folder.id}}}
-    assert_equal folder, c.articles.find_by_name('new_name').parent
+    assert_equal folder, c.articles.find_by(name: 'new_name').parent
   end
 
   should 'be highlighted if asked when approving a published article' do
@@ -265,7 +265,7 @@ class TasksControllerTest < ActionController::TestCase
     t = ApproveArticle.create!(:article => article, :target => c, :requestor => profile)
 
     post :close, :tasks => {t.id => {:decision => 'finish', :task => {:name => 'new_name', :article_parent_id => folder.id, :highlighted => true}}}
-    assert_equal true, c.articles.find_by_name('new_name').highlighted
+    assert_equal true, c.articles.find_by(name: 'new_name').highlighted
   end
 
   should 'create article of same class after choosing root folder on approve article task' do
@@ -277,7 +277,7 @@ class TasksControllerTest < ActionController::TestCase
     t = ApproveArticle.create!(:article => article, :target => c, :requestor => profile)
 
     post :close, :tasks => {t.id => {:decision => 'finish', :task => {:name => 'new_name', :article_parent_id => ""}}}
-    assert_not_nil c.articles.find_by_name('new_name')
+    assert_not_nil c.articles.find_by(name: 'new_name')
   end
 
   should 'handle blank names for published articles' do
@@ -297,7 +297,7 @@ class TasksControllerTest < ActionController::TestCase
     assert_difference 'article.class.count' do
       post :close, :tasks => {a.id => {:decision => 'finish', :task => {:name => "", :highlighted => "0", :article_parent_id => c_blog2.id.to_s}}}
     end
-    assert p_article = article.class.find_by_reference_article_id(article.id)
+    assert p_article = article.class.find_by(reference_article_id: article.id)
     assert_includes c_blog2.children(true), p_article
   end
 
@@ -337,7 +337,7 @@ class TasksControllerTest < ActionController::TestCase
     t = SuggestArticle.create!(:article => {:name => 'test name', :body => 'test body'}, :name => 'some name', :email => 'test@localhost.com', :target => c)
 
     post :close, :tasks => {t.id => { :task => {}, :decision => "finish"}}
-    assert_not_nil TinyMceArticle.find(:first)
+    assert_not_nil TinyMceArticle.first
   end
 
   should "change the article's attributes on suggested article task approval" do
@@ -353,11 +353,11 @@ class TasksControllerTest < ActionController::TestCase
     t.save!
 
     post :close, :tasks => {t.id => { :task => {:article => {:name => 'new article name', :body => 'new body', :source => 'http://www.noosfero.com', :source_name => 'new source'}, :name => 'new name'}, :decision => "finish"}}
-    assert_equal 'new article name', TinyMceArticle.find(:first).name
-    assert_equal 'new name', TinyMceArticle.find(:first).author_name
-    assert_equal 'new body', TinyMceArticle.find(:first).body
-    assert_equal 'http://www.noosfero.com', TinyMceArticle.find(:first).source
-    assert_equal 'new source', TinyMceArticle.find(:first).source_name
+    assert_equal 'new article name', TinyMceArticle.first.name
+    assert_equal 'new name', TinyMceArticle.first.author_name
+    assert_equal 'new body', TinyMceArticle.first.body
+    assert_equal 'http://www.noosfero.com', TinyMceArticle.first.source
+    assert_equal 'new source', TinyMceArticle.first.source_name
   end
 
   should "display name from article suggestion when requestor was not setted" do
@@ -784,6 +784,40 @@ class TasksControllerTest < ActionController::TestCase
     get :processed, :filter => {:type => AnotherTask, :status => Task::Status::FINISHED, :created_from => created_date, :created_until => created_date, :closed_from => processed_date, :closed_until => processed_date, :requestor => requestor.name, :closed_by => closed_by.name, :text => 'some data field'}
     assert_response :success
     assert_equal [task], assigns(:tasks)
+  end
+
+  should 'list custom field details in moderation user tasks when moderation_tasks is true' do
+    person_custom_field = CustomField.create(:name => "great_field", :format=>"string", :default_value => "value for person", :customized_type=>"Person", :active => true, :environment => Environment.default, :moderation_task => true, :required => true)
+    p1 = create_user("great_person").person
+    p1.custom_values = {"great_field" => "new_value!"}
+    p1.save!
+    p1.reload
+    admin = create_user("admin").person
+    Environment.default.add_admin(admin)
+    @controller.stubs(:profile).returns(admin)
+    login_as "admin"
+
+    ModerateUserRegistration.create!(:requestor => p1, :name => "great_person", :email => "alo@alo.alo", :target => Environment.default)
+
+    get :index
+
+    assert_tag :tag=> 'div', :attributes => { :class => 'field-name' }, :content => /great_field: new_value!/
+  end
+
+  should 'list custom field details in moderation of community creation tasks when moderation_tasks is true' do
+    community_custom_field = CustomField.create(:name => "great_field", :format=>"string", :default_value => "value for community", :customized_type=>"Community", :active => true, :environment => Environment.default, :moderation_task => true, :required => true)
+    p1 = create_user("great_person").person
+    p1.save!
+    admin = create_user("admin").person
+    Environment.default.add_admin(admin)
+    @controller.stubs(:profile).returns(admin)
+    login_as "admin"
+
+    CreateCommunity.create!(:requestor => p1, :name => "great_community", :target => Environment.default, :custom_values => {"great_field" => {"value" => "new value for community!"}})
+
+    get :index
+
+    assert_tag :tag=> 'div', :attributes => { :class => 'field-name' }, :content => /great_field: new value for community!/
   end
 
   should "display email template selection when accept a task" do

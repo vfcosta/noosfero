@@ -1,11 +1,11 @@
-require 'test_helper'
+require_relative '../test_helper'
 
 class ProfileEmailTemplatesControllerTest < ActionController::TestCase
 
   setup do
     @profile = fast_create(Community)
-    @email_template = EmailTemplate.create!(:name => 'template', :owner => @profile)
     @person = create_user_with_permission('templatemanager', 'manage_email_templates', @profile)
+    @email_template = EmailTemplate.create!(:name => 'template', :owner => @profile)
     login_as(@person.user.login)
   end
 

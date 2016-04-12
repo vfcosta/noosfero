@@ -339,7 +339,7 @@ class ProfileController < PublicController
         user.register_report(abuse_report, profile)
 
         if !params[:content_type].blank?
-          abuse_report = AbuseReport.find_by_reporter_id_and_abuse_complaint_id(user.id, profile.opened_abuse_complaint.id)
+          abuse_report = AbuseReport.find_by(reporter_id: user.id, abuse_complaint_id: profile.opened_abuse_complaint.id)
           Delayed::Job.enqueue DownloadReportedImagesJob.new(abuse_report, article)
         end
 
@@ -373,8 +373,8 @@ class ProfileController < PublicController
 
   def send_mail
     @mailing = profile.mailings.build(params[:mailing])
-    @email_templates = profile.email_templates.find_all_by_template_type(:organization_members)
     @mailing.data = session[:members_filtered] ? {:members_filtered => session[:members_filtered]} : {}
+    @email_templates = profile.email_templates.where template_type: :organization_members
     if request.post?
       @mailing.locale = locale
       @mailing.person = user

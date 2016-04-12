@@ -1,6 +1,5 @@
 class ActivitiesCounterCacheJob
 
-  # Changed to prevent sql injection vunerabillity (http://brakemanscanner.org/docs/warning_types/sql_injection/)
   def perform
     person_activities_counts = ActiveRecord::Base.connection.execute("SELECT profiles.id, count(action_tracker.id) as count FROM profiles LEFT OUTER JOIN action_tracker ON profiles.id = action_tracker.user_id WHERE (action_tracker.created_at >= #{ActiveRecord::Base.connection.quote(ActionTracker::Record::RECENT_DELAY.days.ago.to_s(:db))}) AND ( (profiles.type = 'Person' ) ) GROUP BY profiles.id;")
     organization_activities_counts = ActiveRecord::Base.connection.execute("SELECT profiles.id, count(action_tracker.id) as count FROM profiles LEFT OUTER JOIN action_tracker ON profiles.id = action_tracker.target_id WHERE (action_tracker.created_at >= #{ActiveRecord::Base.connection.quote(ActionTracker::Record::RECENT_DELAY.days.ago.to_s(:db))}) AND ( (profiles.type = 'Community' OR profiles.type = 'Enterprise' OR profiles.type = 'Organization' ) ) GROUP BY profiles.id;")

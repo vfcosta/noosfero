@@ -141,7 +141,6 @@ GEM
       activemodel (= 4.2.5)
       activesupport (= 4.2.5)
       arel (~> 6.0)
-    activerecord-deprecated_finders (1.0.4)
     activerecord-session_store (0.1.2)
       actionpack (>= 4.0.0, < 5)
       activerecord (>= 4.0.0, < 5)
@@ -417,7 +416,6 @@ DEPENDENCIES
   action_tracker_has_comments (= 0.0.0)!
   actionpack-action_caching
   actionpack-page_caching
-  activerecord-deprecated_finders
   activerecord-jdbcpostgresql-adapter
   activerecord-session_store
   acts-as-taggable-on (~> 3.5)

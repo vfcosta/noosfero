@@ -20,6 +20,9 @@ class CreateCommunity < Task
     attr_accessible field.to_sym
   end
 
+  settings_items :custom_values
+  attr_accessible :custom_values
+
   def validate
     self.environment.required_community_fields.each do |field|
       if self.send(field).blank?
@@ -36,6 +39,7 @@ class CreateCommunity < Task
 
     community.update(community_data)
     community.image = image if image
+    community.custom_values = custom_values
     community.environment = self.environment
     community.save!
     community.add_admin(self.requestor)
@@ -61,6 +65,14 @@ class CreateCommunity < Task
       { :message => _('%{requestor} wants to create community %{subject} with this description:<p><em>%{description}</em></p>'),
         :variables => {:description => description} }
     end
+  end
+
+  def reject_details
+    true
+  end
+
+  def custom_fields_moderate
+    true
   end
 
   # tells if this request was rejected

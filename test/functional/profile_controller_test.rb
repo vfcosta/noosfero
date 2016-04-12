@@ -1546,7 +1546,7 @@ class ProfileControllerTest < ActionController::TestCase
     login_as('profile_moderator_user')
 
     get :send_mail, :profile => community.identifier, :mailing => {:subject => 'Hello', :body => 'We have some news'}
-    assert_select '.template-selection', 0
+    assert_select '.template-selection'
     assert assigns(:email_templates).empty?
   end
 

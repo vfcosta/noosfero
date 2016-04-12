@@ -32,6 +32,8 @@ class Task < ActiveRecord::Base
     end
   end
 
+  include Noosfero::Plugin::HotSpot
+
   belongs_to :requestor, :class_name => 'Profile', :foreign_key => :requestor_id
   belongs_to :target, :foreign_key => :target_id, :polymorphic => true
   belongs_to :responsible, :class_name => 'Person', :foreign_key => :responsible_id
@@ -136,9 +138,9 @@ class Task < ActiveRecord::Base
       group = klass.to_s.downcase.pluralize
       id = attribute.to_s + "_id"
       if environment.respond_to?(group)
-        attrb = value || environment.send(group).find_by_id(record.send(id))
+        attrb = value || environment.send(group).find_by(id: record.send(id))
       else
-        attrb = value || klass.find_by_id(record.send(id))
+        attrb = value || klass.find_by(id: record.send(id))
       end
       if attrb.respond_to?(klass.to_s.downcase + "?")
         unless attrb.send(klass.to_s.downcase + "?")
@@ -207,6 +209,10 @@ class Task < ActiveRecord::Base
     true
   end
 
+  def custom_fields_moderate
+    false
+  end
+
   def icon
     {:type => :defined_image, :src => "/images/icons-app/user-minor.png", :name => requestor.name, :url => requestor.url}
   end
@@ -272,6 +278,7 @@ class Task < ActiveRecord::Base
   end
 
   def environment
+    return target if target.kind_of?(Environment)
     self.target.environment unless self.target.nil?
   end
 
@@ -312,9 +319,19 @@ class Task < ActiveRecord::Base
   scope :canceled, -> { where status: Task::Status::CANCELLED }
   scope :closed, -> { where status: [Task::Status::CANCELLED, Task::Status::FINISHED] }
   scope :opened, -> { where status: [Task::Status::ACTIVE, Task::Status::HIDDEN] }
-  scope :of, -> type { where "tasks.type LIKE ?", type if type }
-  scope :order_by, -> attribute, ord { order "#{attribute} #{ord}" }
-  scope :like, -> field, value { where "LOWER(#{field}) LIKE ?", "%#{value.downcase}%" if value }
+  scope :of, -> type { where :type => type  if type }
+  scope :order_by, -> attribute, ord {
+      if ord.downcase.include? 'desc'
+        order attribute.to_sym => :desc
+      else
+        order attribute.to_sym
+      end
+  }
+  scope :like, -> field, value {
+      if value
+        where "LOWER(#{field}) LIKE ?", "%#{value.downcase}%"
+      end
+  }
   scope :pending_all, -> profile, filter_type, filter_text {
     self.to(profile).without_spam.pending.of(filter_type).like('data', filter_text)
   }

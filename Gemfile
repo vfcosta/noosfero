@@ -31,6 +31,7 @@ gem 'whenever', :require => false
 gem 'eita-jrails', '~> 0.10.0', require: 'jrails'
 gem 'diffy',                    '~> 3.0'
 gem 'slim'
+gem 'activerecord-session_store', ('1.0.0.pre' if RUBY_VERSION >= '2.3.0')
 
 # API dependencies
 gem 'grape',                    '~> 0.12'
@@ -44,6 +45,7 @@ gem 'rack-contrib'
 gem 'liquid',                    '~> 3.0.3'
 
 gem 'api-pagination',           '>= 4.1.1'
+gem 'liquid',                    '~> 3.0.3'
 
 # asset pipeline
 gem 'uglifier', '>= 1.0.3'
@@ -55,8 +57,6 @@ gem 'protected_attributes'
 gem 'rails-observers'
 gem 'actionpack-page_caching'
 gem 'actionpack-action_caching'
-gem 'activerecord-session_store'
-gem 'activerecord-deprecated_finders', require: 'active_record/deprecated_finders'
 
 # gem for error reporting
 gem 'airbrake', '~> 4'

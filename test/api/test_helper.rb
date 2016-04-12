@@ -1,5 +1,4 @@
-require File.dirname(__FILE__) + '/../../test_helper'
-require File.join(Rails.root, '/lib/noosfero/api/helpers.rb')
+require 'test_helper'
 
 class OutcomeCaptcha
   class << self

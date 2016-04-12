@@ -1,13 +1,14 @@
 class TasksController < MyProfileController
 
-  protect [:perform_task, :view_tasks], :profile, :only => [:index, :save_tags, :search_tags]
-  protect :perform_task, :profile, :only => [:processed, :change_responsible, :close, :new, :list_requested, :ticket_details, :search_tags]
   include TasksHelper
 
+  protect [:perform_task, :view_tasks], :profile, :only => [:index, :save_tags, :search_tags]
+  protect :perform_task, :profile, :except => [:index, :save_tags, :search_tags]
+  helper CustomFieldsHelper
 
   def index
-    @rejection_email_templates = profile.email_templates.find_all_by_template_type(:task_rejection)
-    @acceptance_email_templates = profile.email_templates.find_all_by_template_type(:task_acceptance)
+    @rejection_email_templates = profile.email_templates.where template_type: :task_rejection
+    @acceptance_email_templates = profile.email_templates.where template_type: :task_acceptance
 
     @filter_type = params[:filter_type].presence
     @filter_text = params[:filter_text].presence
@@ -110,7 +111,7 @@ class TasksController < MyProfileController
   end
 
   def list_requested
-    @tasks = Task.without_spam.find_all_by_requestor_id(profile.id)
+    @tasks = Task.without_spam.where requestor_id: profile.id
   end
 
   def ticket_details
