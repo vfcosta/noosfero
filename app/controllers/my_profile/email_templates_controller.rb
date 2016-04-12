@@ -15,7 +15,6 @@ class EmailTemplatesController < ApplicationController
 
   def show_parsed
     @email_template = owner.email_templates.find(params[:id])
-    template_params = {:profile => owner, :environment => environment}
     render json: {:parsed_body => @email_template.parsed_body(template_params), :parsed_subject => @email_template.parsed_subject(template_params)}
   end
 
