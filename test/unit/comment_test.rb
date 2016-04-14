@@ -103,7 +103,7 @@ class CommentTest < ActiveSupport::TestCase
       comment = create(Comment, :source => article, :author_id => person.id)
     end
 
-    assert_match 'Article associated with this comment is achived', err.message
+    assert_match 'Article associated with this comment is archived', err.message
   end
 
   should 'provide author name for authenticated authors' do

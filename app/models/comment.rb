@@ -221,13 +221,13 @@ class Comment < ActiveRecord::Base
   end
 
   def archived?
-    self.article.archived? if self.article.present? && self.article.respond_to?(:archived?)
+    self.source && self.source.is_a?(Article) && self.source.archived?
   end
 
   protected
 
   def article_archived?
-    errors.add(:article, N_('associated with this comment is achived!')) if archived?
+    errors.add(:article, N_('associated with this comment is archived!')) if archived?
   end
 
 end

@@ -2232,27 +2232,6 @@ class ArticleTest < ActiveSupport::TestCase
     assert !a.display_preview?
   end
 
-  should 'check if a article is archived' do
-    folder = Folder.create!(:name => 'Parent Archived', :profile => profile)
-    a1 = Article.create!(:name => 'Test', :profile => profile, :parent_id => folder.id, :archived => false)
-    a2 = Article.create!(:name => 'Test 2', :profile => profile, :archived => true)
-    folder.update_attributes(:archived => true)
-    a1.reload
-
-    assert a1.archived?
-    assert a2.archived?
-  end
-
-  should 'try add a child article to a archived folder' do
-    folder = Folder.create!(:name => 'Parent Archived', :profile => profile, :archived => true)
-
-    err = assert_raises ActiveRecord::RecordInvalid do
-      a1 = Article.create!(:name => 'Test', :profile => profile, :parent_id => folder.id, :archived => false)
-    end
-
-    assert_match 'Parent folder is archived', err.message
-  end
-
   should 'return full_path' do
     p1 = fast_create(Profile)
     p2 = fast_create(Profile)
@@ -2320,5 +2299,25 @@ class ArticleTest < ActiveSupport::TestCase
     assert_equal 10, article.reload.person_followers.count
   end
 
+  should 'check if a article is archived' do
+    folder = Folder.create!(:name => 'Parent Archived', :profile => profile)
+    a1 = Article.create!(:name => 'Test', :profile => profile, :parent_id => folder.id, :archived => false)
+    a2 = Article.create!(:name => 'Test 2', :profile => profile, :archived => true)
+    folder.update_attributes(:archived => true)
+    a1.reload
+
+    assert a1.archived?
+    assert a2.archived?
+  end
+
+  should 'try add a child article to a archived folder' do
+    folder = Folder.create!(:name => 'Parent Archived', :profile => profile, :archived => true)
+
+    err = assert_raises ActiveRecord::RecordInvalid do
+      a1 = Article.create!(:name => 'Test', :profile => profile, :parent_id => folder.id, :archived => false)
+    end
+
+    assert_match 'Parent folder is archived', err.message
+  end
 
 end
