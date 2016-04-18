@@ -18,16 +18,16 @@ class TasksController < MyProfileController
     @task_types = Task.pending_types_for(profile)
     @task_tags = [OpenStruct.new(:name => _('All'), :id => nil) ] + Task.all_tags
 
-    @tasks = Task.pending_all(profile, @filter_type, @filter_text).order_by('created_at', 'asc')
+    @tasks = Task.pending_all(profile, @filter_type, @filter_text).order_by('created_at', 'asc').paginate(:per_page => Task.per_page, :page => params[:page])
     @tasks = @tasks.where(:responsible_id => @filter_responsible.to_i != -1 ? @filter_responsible : nil) if @filter_responsible.present?
     @tasks = @tasks.tagged_with(@filter_tags, any: true) if @filter_tags.present?
     @tasks = @tasks.paginate(:per_page => Task.per_page, :page => params[:page])
-
     @failed = params ? params[:failed] : {}
 
     @responsible_candidates = profile.members.by_role(profile.roles.reject {|r| !r.has_permission?('perform_task') && !r.has_permission?('view_tasks')}) if profile.organization?
 
     @view_only = !current_person.has_permission?(:perform_task, profile)
+
   end
 
   def processed

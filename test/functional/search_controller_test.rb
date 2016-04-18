@@ -788,15 +788,18 @@ class SearchControllerTest < ActionController::TestCase
     injection = '<iMg SrC=x OnErRoR=document.documentElement.innerHTML=1>SearchParam'
     get :tag, :tag => injection
     tag = assigns(:tag)
-    assert !tag.upcase.include?('IMG') && tag.include?('SearchParam')
+    assert !tag.upcase.include?('IMG')
+    assert tag.include?('SearchParam')
   end
 
-  should 'not allow query injection array' do
-    injection = ['<iMg SrC=x OnErRoR=document.documentElement.innerHTML=1>', '<script>document.innerHTML = \'x\'</script>']
+  should 'not allow query injection in array' do
+    injection = ['<iMg SrC=x OnErRoR=document.documentElement.innerHTML=1>',
+                 '<script>document.innerHTML = \'x\'</script>']
     get :tag, :tag => injection
     tag = assigns(:tag)
-    tag.each { |t| 
-      assert !t.upcase.include?('IMG') && !t.upcase.include?('SCRIPT') 
+    tag.each { |t|
+      assert !t.upcase.include?('IMG')
+      assert !t.upcase.include?('SCRIPT')
     }
   end
 
